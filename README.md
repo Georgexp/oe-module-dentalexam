@@ -1,1 +1,0 @@
-# oe-module-dentalexam
