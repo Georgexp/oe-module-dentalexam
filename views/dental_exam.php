@@ -13,6 +13,7 @@ if ($encounterId && $patientId) {
 }
 $webRoot = $GLOBALS['web_root'];
 ?>
+<title>Dental Exam</title>
 
 <form id="dentalExamForm" method="post" action="<?php echo $webRoot; ?>/modules/oe-module-dental-exam/save.php">
     <div class="grid" id="grid"></div>
@@ -23,7 +24,7 @@ $webRoot = $GLOBALS['web_root'];
             <li><span style="background-color: white; display: inline-block; width: 20px; height: 20px; border: 1px solid black;"></span> Healthy</li>
             <li><span style="background-color: red; display: inline-block; width: 20px; height: 20px; border: 1px solid black;"></span> Caries</li>
             <li><span style="background-color: yellow; display: inline-block; width: 20px; height: 20px; border: 1px solid black;"></span> Filling</li>
-            <li><span style="background-color: gray; display: inline-block; width: 20px; height: 20px; border: 1px solid black;"></span> Missing</li>
+            <li><span style="background-color: rgb(128,128,128); display: inline-block; width: 20px; height: 20px; border: 1px solid black;"></span> Missing</li>
             <li><span style="background-color: black; display: inline-block; width: 20px; height: 20px; border: 1px solid black;"></span> Extraction</li>
             <li><span style="background-color: #90EE90; display: inline-block; width: 20px; height: 20px; border: 1px solid black;"></span> Crown</li>
             <li><span style="background-color: #87CEFA; display: inline-block; width: 20px; height: 20px; border: 1px solid black;"></span> Implant</li>
@@ -67,8 +68,8 @@ $webRoot = $GLOBALS['web_root'];
 </form>
 
 <!-- Load Assets -->
-<link rel="stylesheet" href="<?php echo $webRoot; ?>/modules/oe-module-dental-exam/assets/css/dental_exam.css">
+<link rel="stylesheet" href="<?php echo $webRoot; ?>/interface/modules/custom_modules/oe-module-dentalexam/assets/css/dental_exam.css">
 <script>
     var initialDentalData = <?php echo json_encode($existingData['dental_data'] ?? []); ?>;
 </script>
-<script src="<?php echo $webRoot; ?>/modules/oe-module-dental-exam/assets/js/dental_exam.js"></script>
+<script src="<?php echo $webRoot; ?>/interface/modules/custom_modules/oe-module-dentalexam/assets/js/dental_exam.js"></script>

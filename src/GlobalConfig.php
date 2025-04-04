@@ -42,12 +42,12 @@ class GlobalConfig
     }
 
     /**
-     * Returns true if all of the settings have been configured.  Otherwise it returns false.
+     * Returns true if all the settings have been configured.  Otherwise, it returns false.
      * @return bool
      */
     public function isConfigured()
     {
-        $keys = [self::CONFIG_OPTION_TEXT, self::CONFIG_OPTION_ENCRYPTED];
+        $keys = [];//[self::CONFIG_OPTION_TEXT, self::CONFIG_OPTION_ENCRYPTED];
         foreach ($keys as $key) {
             $value = $this->getGlobalSetting($key);
             if (empty($value)) {

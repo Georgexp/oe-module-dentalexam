@@ -19,10 +19,13 @@ namespace OpenEMR\Modules\CustomModuleSkeleton;
 /**
  * Note the below use statements are importing classes from the OpenEMR core codebase
  */
+
+use OpenEMR\Common\Acl\AclMain;
 use OpenEMR\Common\Logging\SystemLogger;
 use OpenEMR\Common\Twig\TwigContainer;
 use OpenEMR\Core\Kernel;
 use OpenEMR\Events\Core\TwigEnvironmentEvent;
+use OpenEMR\Events\Encounter\EncounterMenuEvent;
 use OpenEMR\Events\Globals\GlobalsInitializedEvent;
 use OpenEMR\Events\Main\Tabs\RenderEvent;
 use OpenEMR\Events\RestApiExtend\RestApiResourceServiceEvent;
@@ -70,7 +73,7 @@ class Bootstrap
 
     public function __construct(EventDispatcherInterface $eventDispatcher, ?Kernel $kernel = null)
     {
-        global $GLOBALS;
+        //global $GLOBALS;
 
         if (empty($kernel)) {
             $kernel = new Kernel();
@@ -97,6 +100,7 @@ class Bootstrap
         // we only add the rest of our event listeners and configuration if we have been fully setup and configured
         if ($this->globalsConfig->isConfigured()) {
             $this->registerMenuItems();
+            $this->registerEncounterMenuItems();
             $this->registerTemplateEvents();
             $this->subscribeToApiEvents();
         }
@@ -117,7 +121,7 @@ class Bootstrap
 
     public function addGlobalSettingsSection(GlobalsInitializedEvent $event)
     {
-        global $GLOBALS;
+        //global $GLOBALS;
 
         $service = $event->getGlobalsService();
         $section = xlt("Skeleton Module");
@@ -156,13 +160,14 @@ class Bootstrap
 
     /**
      * Add our javascript and css file for the module to the main tabs page of the system
+     *
      * @param RenderEvent $event
      */
     public function renderMainBodyScripts(RenderEvent $event)
     {
         ?>
-        <link rel="stylesheet" href="<?php echo $this->getAssetPath();?>css/skeleton-module.css">
-        <script src="<?php echo $this->getAssetPath();?>js/skeleton-module.js"></script>
+        <link rel="stylesheet" href="<?php echo $this->getAssetPath(); ?>css/skeleton-module.css">
+        <script src="<?php echo $this->getAssetPath(); ?>js/skeleton-module.js"></script>
         <?php
     }
 
@@ -192,27 +197,52 @@ class Bootstrap
         if ($this->getGlobalConfig()->getGlobalSetting(GlobalConfig::CONFIG_ENABLE_MENU)) {
             /**
              * @var EventDispatcherInterface $eventDispatcher
-             * @var array $module
+             * @var array                    $module
              * @global                       $eventDispatcher @see ModulesApplication::loadCustomModule
-             * @global                       $module @see ModulesApplication::loadCustomModule
+             * @global                       $module          @see ModulesApplication::loadCustomModule
              */
             $this->eventDispatcher->addListener(MenuEvent::MENU_UPDATE, [$this, 'addCustomModuleMenuItem']);
         }
     }
 
+    public function registerEncounterMenuItems()
+    {
+        /**
+         * @var EventDispatcherInterface $eventDispatcher
+         * @var array                    $module
+         * @global                       $eventDispatcher @see ModulesApplication::loadCustomModule
+         * @global                       $module          @see ModulesApplication::loadCustomModule
+         */
+        $this->eventDispatcher->addListener(EncounterMenuEvent::MENU_RENDER, [$this, 'addCustomModuleEncounterMenuItem']);
+    }
+
     public function addCustomModuleMenuItem(MenuEvent $event)
     {
-        $menu = $event->getMenu();
-
         $menuItem = new \stdClass();
         $menuItem->requirement = 0;
-        $menuItem->target = 'mod';
-        $menuItem->menu_id = 'mod0';
-        $menuItem->label = xlt("Custom Module Skeleton");
-        // TODO: pull the install location into a constant into the codebase so if OpenEMR changes this location it
-        // doesn't break any modules.
-        $menuItem->url = "/interface/modules/custom_modules/oe-module-custom-skeleton/public/sample-index.php";
-        $menuItem->children = [];
+        $menuItem->target = 'den';
+        $menuItem->menu_id = 'den0';
+        $menuItem->label = xlt("Dental Forms");
+
+        $menuItem1 = new \stdClass();
+        $menuItem1->requirement = 0;
+        $menuItem1->target = 'den';
+        $menuItem1->menu_id = 'den1';
+        $menuItem1->label = xlt("Dental Exam Form");
+        $menuItem1->acl_req = ["patients", "docs"];
+        $menuItem1->global_req = [];
+        $menuItem1->url = "/interface/modules/custom_modules/oe-module-dentalexam/index.php";
+
+        $menuItem2 = new \stdClass();
+        $menuItem2->requirement = 0;
+        $menuItem2->target = 'den';
+        $menuItem2->menu_id = 'den2';
+        $menuItem2->label = xlt("GridGood Form");
+        $menuItem2->acl_req = ["patients", "docs"];
+        $menuItem2->global_req = [];
+        $menuItem2->url = "/interface/modules/custom_modules/oe-module-dentalexam/GridGood.html.php";
+
+        $menuItem->children = [$menuItem1, $menuItem2];
 
         /**
          * This defines the Access Control List properties that are required to use this module.
@@ -242,16 +272,33 @@ class Bootstrap
          */
         $menuItem->global_req = [];
 
-        foreach ($menu as $item) {
+        $menu = $event->getMenu();
+
+        // not needed for dental top level menu
+        /*foreach ($menu as $item) {
             if ($item->menu_id == 'modimg') {
                 $item->children[] = $menuItem;
                 break;
             }
-        }
+        }*/
 
+        $menu[] = $menuItem;
         $event->setMenu($menu);
 
         return $event;
+    }
+
+    public function addCustomModuleEncounterMenuItem(EncounterMenuEvent $menuEvent)
+    {
+        // Add a new menu item to the Dental Exam category
+        $menuArray = $menuEvent->getMenuData();
+        $item['name'] = "Dental Exam Form";
+        $item['nickname'] = "";
+        $item['displayText'] = $item['name'];
+        $menuArray[ "Dental Exam"]['children'][] = $item;
+
+        $menuEvent->setMenuData($menuArray);
+        return $menuEvent;
     }
 
     public function subscribeToApiEvents()
@@ -282,6 +329,7 @@ class Bootstrap
     /**
      * Adds the webhook api scopes to the oauth2 scope validation events for the standard api.  This allows the webhook
      * to be fired.
+     *
      * @param RestApiScopeEvent $event
      * @return RestApiScopeEvent
      */
@@ -292,8 +340,7 @@ class Bootstrap
             $scopes[] = 'user/CustomSkeletonResource.read';
             $scopes[] = 'patient/CustomSkeletonResource.read';
             // only add system scopes if they are actually enabled
-            if (\RestConfig::areSystemScopesEnabled())
-            {
+            if (\RestConfig::areSystemScopesEnabled()) {
                 $scopes[] = 'system/CustomSkeletonResource.read';
             }
             $event->setScopes($scopes);

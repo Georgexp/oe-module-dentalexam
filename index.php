@@ -1,8 +1,10 @@
 <?php
 // index.php
-require_once(dirname(__FILE__) . '/../../globals.php');
+require_once(__DIR__ . '/../../../globals.php');
 
-if (!acl_check('patients', 'write')) {
+use OpenEMR\Common\Acl\AclMain;
+
+if (!AclMain::aclCheckCore('patients', 'write')) {
     die("Unauthorized access");
 }
 
@@ -10,7 +12,7 @@ $encounterId = $_GET['encounter'] ?? '';
 $patientId = $_GET['pid'] ?? '';
 
 if (!$encounterId || !$patientId) {
-    die("Encounter ID and Patient ID are required");
+//    die("Encounter ID and Patient ID are required");
 }
 
 // Render the view
